@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go/printer"
 	"net"
 	"os"
 )
@@ -36,10 +37,13 @@ func main() {
 		}
 
 		req := string(b[:n])
-		fmt.Println(req)
-		
+
 		if req == "PING\r\n" {
-			_, _ = conn.Write([]byte("PONG\r\n"))
+			_, err = conn.Write([]byte("PONG\r\n"))
+
+			if err != nil {
+				fmt.Printf(err.Error())
+			}
 		}
 	}
 }
