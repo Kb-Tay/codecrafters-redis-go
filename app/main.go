@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"go/printer"
 	"net"
 	"os"
 )
@@ -10,6 +9,25 @@ import (
 // Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
 var _ = net.Listen
 var _ = os.Exit
+
+func handle(conn net.Conn) {
+	b := make([]byte, 1024)
+	defer conn.Close()
+
+	for {
+		n, err := conn.Read(b)
+
+		if err != nil {
+			return	
+		}
+
+		req := string(b[:n])
+
+		if req == "PING\r\n" {
+			_, _ = conn.Write([]byte("PONG\r\n"))
+		}
+	}
+}
 
 func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
@@ -27,23 +45,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	for {
-		b := make([]byte, 1024)
-		n, err := conn.Read(b)
-
-		if err != nil {
-			conn.Close()
-			break
-		}
-
-		req := string(b[:n])
-
-		if req == "PING\r\n" {
-			_, err = conn.Write([]byte("PONG\r\n"))
-
-			if err != nil {
-				fmt.Printf(err.Error())
-			}
-		}
-	}
+	handle(conn)
 }
