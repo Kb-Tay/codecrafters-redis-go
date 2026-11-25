@@ -23,6 +23,7 @@ func handle(conn net.Conn) {
 
 		for len(req) > 0 {
 			args, bytesParsed, err := respprotocol.Parse(req)
+			fmt.Println(args)
 			if err != nil {
 				return
 			}
