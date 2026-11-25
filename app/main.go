@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net"
 	"os"
+
+	respprotocol "github.com/codecrafters-io/redis-starter-go/app/resp_protocol"
 )
 
 // Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
@@ -13,17 +15,30 @@ var _ = os.Exit
 func handle(conn net.Conn) {
 	defer conn.Close()
 
+	var req string
+	var b [1024]byte
 	for {
-		b := make([]byte, 1024)
-		n, err := conn.Read(b)
-		if err != nil {
-			return	
+		n, readErr := conn.Read(b[:])
+		req += string(b[:n])
+
+		for len(req) > 0 {
+			args, bytesParsed, err := respprotocol.Parse(req)
+			if err != nil {
+				return
+			}
+			if bytesParsed == 0 {
+				break
+			}
+
+			if len(args) == 1 && args[0] == "PING" {
+				if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
+					return
+				}
+			}
+			req = req[bytesParsed:]
 		}
-
-		req := string(b[:n])
-
-		if req == "*1\r\n$4\r\nPING\r\n" {
-			_, _ = conn.Write([]byte("+PONG\r\n"))
+		if readErr != nil {
+			return
 		}
 	}
 }
