@@ -16,15 +16,13 @@ func handle(conn net.Conn) {
 	for {
 		b := make([]byte, 1024)
 		n, err := conn.Read(b)
-		fmt.Println(string(b))
-
 		if err != nil {
 			return	
 		}
 
 		req := string(b[:n])
 
-		if req == "PING\r\n" {
+		if req == "PING" {
 			_, _ = conn.Write([]byte("PONG\r\n"))
 		}
 	}
