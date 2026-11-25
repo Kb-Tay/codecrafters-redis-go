@@ -22,7 +22,7 @@ func handle(conn net.Conn) {
 
 		req := string(b[:n])
 
-		if req == "*1\r\n$4\r\nPING" {
+		if req == "*1\r\n$4\r\nPING\r\n" {
 			_, _ = conn.Write([]byte("+PONG\r\n"))
 		}
 	}
