@@ -11,11 +11,12 @@ var _ = net.Listen
 var _ = os.Exit
 
 func handle(conn net.Conn) {
-	b := make([]byte, 1024)
 	defer conn.Close()
 
 	for {
+		b := make([]byte, 1024)
 		n, err := conn.Read(b)
+		fmt.Println(string(b))
 
 		if err != nil {
 			return	
