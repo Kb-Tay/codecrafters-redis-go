@@ -62,5 +62,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	handle(conn)
+	go handle(conn)
 }
