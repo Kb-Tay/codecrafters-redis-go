@@ -62,3 +62,8 @@ func parseLength(s string) (int, int, error) {
 	}
 	return length, end + 2, nil
 }
+
+
+func BulkStr(s string) string {
+	return fmt.Sprintf("$%d\r\n%s\r\n", len(s), s)
+}

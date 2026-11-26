@@ -29,6 +29,7 @@ func handle(conn net.Conn) {
 
 		for len(req) > 0 {
 			args, bytesParsed, err := respprotocol.Parse(req)
+			log.Println(args)
 			if err != nil {
 				return
 			}
@@ -36,12 +37,24 @@ func handle(conn net.Conn) {
 				break
 			}
 
-			for _, arg := range(args) {
-				if arg == "PING" {
+			i := 0 
+			for i < len(args) {
+				if args[i] == "PING" {
 					if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
 						return
 					}
 				}
+
+				if args[i] == "ECHO" {
+					// might need consider case where the ECHO arg is not fully parsed
+					if _, err := conn.Write([]byte(respprotocol.BulkStr(args[i+1]))); err != nil {
+						return
+					}
+
+					i += 1
+				}
+
+				i += 1
 			}
 
 			req = req[bytesParsed:]
