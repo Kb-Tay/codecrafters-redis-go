@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"os"
 
@@ -15,6 +16,10 @@ var _ = os.Exit
 
 func handle(conn net.Conn) {
 	defer conn.Close()
+
+	addr := conn.RemoteAddr()
+	log.Printf("Client connected: %s", addr)
+	defer log.Printf("Client disconnected: %s", addr)
 
 	var req string
 	var b [1024]byte
