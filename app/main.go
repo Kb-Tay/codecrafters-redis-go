@@ -7,14 +7,11 @@ import (
 	"net"
 	"os"
 
-	respprotocol "github.com/codecrafters-io/redis-starter-go/app/resp_protocol"
+	"github.com/codecrafters-io/redis-starter-go/app/internal/resp"
+	"github.com/codecrafters-io/redis-starter-go/app/internal/store"
 )
 
-// Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
-var _ = net.Listen
-var _ = os.Exit
-
-func handle(conn net.Conn) {
+func handle(conn net.Conn, store store.Store) {
 	defer conn.Close()
 
 	addr := conn.RemoteAddr()
@@ -23,12 +20,13 @@ func handle(conn net.Conn) {
 
 	var req string
 	var b [1024]byte
+
 	for {
 		n, readErr := conn.Read(b[:])
 		req += string(b[:n])
 
 		for len(req) > 0 {
-			args, bytesParsed, err := respprotocol.Parse(req)
+			args, bytesParsed, err := resp.Parse(req)
 			log.Println(args)
 			if err != nil {
 				return
@@ -47,11 +45,26 @@ func handle(conn net.Conn) {
 
 				if args[i] == "ECHO" {
 					// might need consider case where the ECHO arg is not fully parsed
-					if _, err := conn.Write([]byte(respprotocol.BulkStr(args[i+1]))); err != nil {
+					if _, err := conn.Write([]byte(resp.BulkStr(args[i+1]))); err != nil {
 						return
 					}
 
 					i += 1
+				}
+
+				if args[i] == "SET" {
+					store.Set(args[i+1], args[i+2])
+					if _, err := conn.Write([]byte("+OK\r\n")); err != nil {
+						return
+					}
+				}
+
+				if args[i] == "GET" {
+					v := store.Get(args[i+1])
+					fmt.Println(v)
+					if _, err := conn.Write([]byte("+" + v + "\r\n")); err != nil {
+						return
+					}
 				}
 
 				i += 1
@@ -75,6 +88,8 @@ func main() {
 		fmt.Println("Failed to bind to port 6379")
 		os.Exit(1)
 	}
+	
+	var store = store.New()
 
 	for {
 		conn, err := l.Accept()
@@ -87,6 +102,6 @@ func main() {
 			os.Exit(1)
 		}
 
-		go handle(conn)
+		go handle(conn, store)
 	}
 }

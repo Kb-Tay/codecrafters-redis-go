@@ -1,4 +1,4 @@
-package respprotocol
+package resp
 
 import (
 	"fmt"
