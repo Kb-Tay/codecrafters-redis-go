@@ -61,8 +61,7 @@ func handle(conn net.Conn, store store.Store) {
 
 				if args[i] == "GET" {
 					v := store.Get(args[i+1])
-					fmt.Println(v)
-					if _, err := conn.Write([]byte("+" + v + "\r\n")); err != nil {
+					if _, err := conn.Write([]byte(resp.BulkStr(v))); err != nil {
 						return
 					}
 				}
